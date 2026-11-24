@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#111a20">
+<title>Phàm Nhân Tu Tiên</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#101820;color:#eee0c2;
+ font-family:Georgia,serif;
+}
+header{
+ text-align:center;padding:20px 10px;
+ background:#19252b;border-bottom:1px solid #a88b54;
+}
+header h1{margin:0;color:#d9bd7b;letter-spacing:3px}
+header small{color:#a99b7d}
+main{max-width:600px;margin:auto;padding:12px}
+.panel{
+ background:#1c292e;border:1px solid #786443;
+ border-radius:12px;padding:15px;margin-bottom:12px;
+}
+h3{color:#d9bd7b;margin:0 0 12px}
+.world{
+ height:220px;border-radius:10px;
+ position:relative;overflow:hidden;
+ background:linear-gradient(#314c52,#65816b 55%,#263f35);
+ border:1px solid #a88b54;
+}
+.world:before{
+ content:"";position:absolute;inset:0;
+ background:linear-gradient(135deg,transparent 35%,#182c2b88 70%);
+}
+.mountains{
+ position:absolute;top:28px;width:100%;
+ text-align:center;font-size:68px;
+}
+.tree{position:absolute;bottom:25px;font-size:35px}
+.t1{left:10px}.t2{right:15px}
+.player{
+ position:absolute;left:50%;top:48%;
+ transform:translate(-50%,-50%);
+ font-size:43px;transition:.2s;
+}
+.worldname{
+ position:absolute;bottom:8px;width:100%;
+ text-align:center;color:white;
+ text-shadow:0 2px 4px black;
+}
+.row{
+ display:flex;justify-content:space-between;
+ margin:10px 0;gap:10px;
+}
+.bar{height:12px;background:#0d151a;border-radius:10px;overflow:hidden}
+.fill{height:100%;width:0%;background:#b79a57;transition:.3s}
+button{
+ border:1px solid #b49a65;background:#35434a;
+ color:#f3dfb2;border-radius:8px;padding:12px;
+ font-size:14px;font-family:inherit;
+}
+button:active{background:#79643c}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.wide{width:100%}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.log{
+ min-height:45px;color:#b9c6b2;
+ font-size:14px;line-height:1.6;
+}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.hidden{display:none}
+.small{font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+<header>
+<h1>凡人修仙</h1>
+<small>PHÀM NHÂN TU TIÊN · 仙途漫漫</small>
+</header>
+
+<main>
+<section class="panel">
+<h3>Thanh Vân Sơn</h3>
+<div class="world">
+ <div class="mountains">⛰️ 🏔️ ⛰️</div>
+ <div class="tree t1">🌲</div>
+ <div class="tree t2">🌳</div>
+ <div class="player" id="player">🧙</div>
+ <div class="worldname" id="place">Thanh Vân Sơn</div>
+</div>
+<div class="nav">
+ <span></span><button onclick="move(0,-1)">⬆️</button><span></span>
+ <button onclick="move(-1,0)">⬅️</button>
+ <button onclick="move(0,1)">⬇️</button>
+ <button onclick="move(1,0)">➡️</button>
+</div>
+<p class="small" style="text-align:center">Chạm các nút để khám phá thế giới</p>
+</section>
+
+<section class="panel">
+<h3>Thông tin tu sĩ</h3>
+<div class="row"><span>Đạo hiệu</span><b>Vô Danh</b></div>
+<div class="row"><span>Cảnh giới</span><b id="realm">Luyện Khí tầng 1</b></div>
+<div class="row"><span>Sinh mệnh</span><b id="hp">100 / 100</b></div>
+<div class="row"><span>Linh thạch</span><b id="stone">100</b></div>
+<div class="row"><span>Tu vi</span><b id="xp">0 / 100</b></div>
+<div class="bar"><div class="fill" id="bar"></div></div>
+</section>
+
+<section class="panel">
+<h3>Đạo pháp tu luyện</h3>
+<p class="small">Vận chuyển công pháp, hấp thu linh khí thiên địa.</p>
+<div class="actions">
+<button onclick="meditate()">☯ Ngồi thiền</button>
+<button onclick="breakthrough()">✨ Đột phá</button>
+</div>
+</section>
+
+<section class="panel">
+<h3>Thám hiểm</h3>
+<div class="actions">
+<button onclick="explore()">🌲 Tìm kiếm tài nguyên</button>
+<button onclick="battle()">⚔️ Khiêu chiến yêu thú</button>
+</div>
+</section>
+
+<section class="panel hidden" id="battlePanel">
+<h3>Chiến đấu</h3>
+<div class="row"><span>Yêu thú</span><b id="enemyHP">60</b></div>
+<div class="bar"><div class="fill" id="enemyBar"></div></div>
+<p class="small">Hãy lựa chọn hành động.</p>
+<div class="actions">
+<button onclick="attack()">⚔️ Tấn công</button>
+<button onclick="skill()">🔥 Pháp thuật</button>
+<button onclick="defend()">🛡️ Phòng thủ</button>
+<button onclick="runAway()">🏃 Rút lui</button>
+</div>
+</section>
+
+<section class="panel">
+<h3>Nhật ký hành trình</h3>
+<div class="log" id="log">Một phàm nhân bước lên con đường trường sinh...</div>
+</section>
+
+<section class="panel">
+<h3>Hệ thống</h3>
+<div class="actions">
+<button onclick="saveGame()">💾 Lưu tiến trình</button>
+<button onclick="loadGame()">📜 Tải tiến trình</button>
+</div>
+</section>
+</main>
+
+<script>
+const realms=[
+"Luyện Khí","Trúc Cơ","Kim Đan","Nguyên Anh",
+"Hóa Thần","Luyện Hư","Hợp Thể","Đại Thừa"
+];
+
+let game={
+ xp:0,level:1,realm:0,stone:100,
+ hp:100,x:50,y:48,
+ enemy:0,enemyMax:60
+};
+
+const $=id=>document.getElementById(id);
+
+function log(t){$("log").textContent=t}
+
+function update(){
+ $("realm").textContent=realms[game.realm]+" tầng "+game.level;
+ $("xp").textContent=game.xp+" / 100";
+ $("stone").textContent=game.stone;
+ $("hp").textContent=game.hp+" / 100";
+ $("bar").style.width=game.xp+"%";
+ $("player").style.left=game.x+"%";
+ $("player").style.top=game.y+"%";
+}
+
+function meditate(){
+ let gain=15+Math.floor(Math.random()*16);
+ game.xp=Math.min(100,game.xp+gain);
+ log("Bạn vận chuyển công pháp, hấp thu "+gain+" điểm tu vi.");
+ update();
+}
+
+function breakthrough(){
+ if(game.xp<100){
+ log("Tu vi chưa đủ. Hãy tiếp tục tu luyện.");
+ return;
+ }
+ game.xp-=100;
+ if(game.level<9){
+ game.level++;
+ log("Đột phá thành công! Đạt tầng "+game.level+".");
+ }else if(game.realm<7){
+ game.realm++;
+ game.level=1;
+ log("Thiên địa biến sắc! Bạn đột phá "+realms[game.realm]+".");
+ }else{
+ log("Bạn đã đạt Đại Thừa cảnh giới!");
+ }
+ update();
+}
+
+function move(dx,dy){
+ game.x=Math.max(8,Math.min(92,game.x+dx*8));
+ game.y=Math.max(18,Math.min(75,game.y+dy*8));
+ update();
+ log("Bạn đang khám phá vùng đất Thanh Vân Sơn.");
+}
+
+function explore(){
+ let r=Math.random();
+ if(r<0.6){
+ let n=10+Math.floor(Math.random()*21);
+ game.stone+=n;
+ log("Bạn tìm được "+n+" linh thạch.");
+ }else{
+ game.xp=Math.min(100,game.xp+15);
+ log("Bạn tìm được một nơi linh khí dồi dào, nhận 15 tu vi.");
+ }
+ update();
+}
+
+function battle(){
+ game.enemy=60+game.realm*20;
+ game.enemyMax=game.enemy;
+ $("battlePanel").classList.remove("hidden");
+ updateEnemy();
+ log("Một con yêu thú xuất hiện!");
+}
+
+function updateEnemy(){
+ $("enemyHP").textContent=game.enemy;
+ $("enemyBar").style.width=Math.max(0,game.enemy/game.enemyMax*100)+"%";
+}
+
+function finishBattle(){
+ game.enemy=0;
+ $("battlePanel").classList.add("hidden");
+ game.stone+=30;
+ game.xp=Math.min(100,game.xp+25);
+ log("Chiến thắng! Nhận 30 linh thạch và 25 tu vi.");
+ update();
+}
+
+function enemyTurn(defense=0){
+ if(game.enemy<=0)return;
+ let damage=Math.max(0,12+Math.floor(Math.random()*9)-defense);
+ game.hp=Math.max(0,game.hp-damage);
+ if(game.hp===0){
+ game.hp=100;
+ game.stone=Math.max(0,game.stone-20);
+ $("battlePanel").classList.add("hidden");
+ log("Bạn trọng thương, được đưa về nơi an toàn và mất 20 linh thạch.");
+ }else{
+ log("Yêu thú phản công, bạn mất "+damage+" sinh mệnh.");
+ }
+ update();
+}
+
+function attack(){
+ if(!game.enemy)return;
+ game.enemy=Math.max(0,game.enemy-20);
+ updateEnemy();
+ if(game.enemy===0)finishBattle();
+ else enemyTurn();
+}
+
+function skill(){
+ if(!game.enemy)return;
+ if(game.stone<10){log("Không đủ linh thạch để thi triển pháp thuật.");return}
+ game.stone-=10;
+ game.enemy=Math.max(0,game.enemy-35);
+ updateEnemy();
+ if(game.enemy===0)finishBattle();
+ else enemyTurn();
+ update();
+}
+
+function defend(){
+ if(!game.enemy)return;
+ enemyTurn(10);
+}
+
+function runAway(){
+ $("battlePanel").classList.add("hidden");
+ game.enemy=0;
+ log("Bạn rút lui khỏi trận chiến.");
+}
+
+function saveGame(){
+ try{
+ localStorage.setItem("phamNhanTuTien",JSON.stringify(game));
+ log("Đã lưu tiến trình trên thiết bị.");
+ }catch(e){log("Không thể lưu dữ liệu trên trình duyệt này.")}
+}
+
+function loadGame(){
+ try{
+ let data=JSON.parse(localStorage.getItem("phamNhanTuTien"));
+ if(!data){log("Chưa tìm thấy dữ liệu lưu.");return}
+ game={...game,...data};
+ $("battlePanel").classList.add("hidden");
+ update();
+ log("Đã tải tiến trình tu luyện.");
+ }catch(e){log("Không thể tải dữ liệu.")}
+}
+
+update();
+</script>
+</body>
+</html>
